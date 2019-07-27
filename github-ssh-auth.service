@@ -1,0 +1,9 @@
+[Unit]
+Description=GitHub SSH Auth
+
+[Service]
+Type=oneshot
+WorkingDirectory=DIR
+ExecStart=DIR/github-ssh-auth
+Environment=PYTHONUNBUFFERED=1
+RestartSec=3

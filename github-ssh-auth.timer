@@ -1,0 +1,10 @@
+[Unit]
+Description=GitHub SSH Auth Timer
+After=network.target
+
+[Timer]
+OnBootSec=60s
+OnUnitInactiveSec=30m
+
+[Install]
+WantedBy=default.target
