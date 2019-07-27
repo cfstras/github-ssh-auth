@@ -1,1 +1,4 @@
 .env
+authorized_keys
+
+config.yml
