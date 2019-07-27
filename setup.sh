@@ -24,10 +24,11 @@ install_service() {
 
     echo "### Enabling systemd timer"
     systemctl --user daemon-reload
-    systemctl --user reenable --now "$TIMER"
+    systemctl --user enable "$TIMER"
+    systemctl --user start "$TIMER"
 
     echo "### Starting service once"
-    systemctl --user start "$SERVICE"
+    systemctl --user start "$SERVICE" || journalctl -xe
     echo "### Please edit config.yml to your liking."
 }
 

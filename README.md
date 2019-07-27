@@ -5,12 +5,11 @@ Automatically provision SSH authorized_keys to your user by scraping a GitHub or
 ## Setup
 - If you're on Debian, you will need some more packages:
 ```bash
-apt install python3
+sudo apt install python3
 ```
-
-- Enable lingering services for your user:
+- Also, upgrade your system. An outdated libssl will cause pain.
 ```bash
-sudo loginctl enable-linger $USER
+sudo apt update && sudo apt upgrade
 ```
 
 The following script will:
