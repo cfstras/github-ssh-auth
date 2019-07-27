@@ -1,3 +1,6 @@
+#!/bin/sh
+"exec" "`dirname $0`/.env/bin/python" "$0" "$@"
+import argparse
 import base64
 import difflib
 import logging
@@ -9,55 +12,85 @@ import sshpubkeys
 import yaml
 from github import Github
 
+SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
+
 UNCONFIGURED_TOKEN = "TOKEN"
-CONFIG_PATH = "config.yml"
-EXAMPLE_CONFIG_PATH = "config.example.yml"
+CONFIG_PATH = SCRIPT_PATH + "/config.yml"
+EXAMPLE_CONFIG_PATH = SCRIPT_PATH + "/config.example.yml"
 
 logging.basicConfig(
-    format="[%(levelname) 5s][%(module) 7s] %(message)s",
+    format="[%(levelname) 7s][%(module) 7s] %(message)s",
     level=logging.INFO)
 
 LOG = logging.getLogger('main')
-LOG.setLevel(logging.DEBUG)
+
 
 def main(args):
+    options = get_options(args)
 
-    config = get_config()
+    config = get_config(options.config)
     if not config:
-        LOG.error("Please edit config.yml to provide token.")
+        LOG.error("Please edit %s to provide token.", options.config)
         return 1
     g = Github(config['token'])
 
-    target = config['target']
-    intermediate_target = "." + target + ".new"
+    target = os.path.expanduser(config['target'])
+    intermediate_target = target + ".new"
 
     org = config['organization']
     team = config.get('team')
 
-    fallback = config.get('fallback_keys')
+    new_lines = generate_content(fallback=config.get('fallback_keys'), g=g, org=org, team=team)
+    compare_existing(new_lines, target)
+    if not options.no_action:
+        write_output(intermediate_target, new_lines, target)
+    else:
+        LOG.warning("Exiting because --no-action was specified.")
 
-    new_lines = [l + "\n" for l in get_fallback(fallback)]
 
-    lines = export_keys(g, org, team)
-    new_lines.extend([l + "\n" for l in lines])
+def get_options(args):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--debug",
+        help="debug output",
+        action="store_true")
+    parser.add_argument("-n", "--no-action",
+        help="don't write any files, just fetch info and report differences",
+        action="store_true")
+    parser.add_argument("-c", "--config",
+        help="path to configuration file. default: {}".format(CONFIG_PATH),
+        default=CONFIG_PATH)
+    options = parser.parse_args(args[1:])
+    if options.debug:
+        LOG.setLevel(logging.DEBUG)
+    return options
 
+
+def write_output(intermediate_target, new_lines, target):
+    LOG.debug("Using temp file %s", intermediate_target)
+    with open(intermediate_target, "w") as fd:
+        fd.writelines(new_lines)
+    os.rename(intermediate_target, target)
+    LOG.info("File written to %s", target)
+
+
+def compare_existing(new_lines, target):
     if os.path.exists(target):
         old_lines = open(target).readlines()
-        diff = difflib.unified_diff(old_lines, new_lines, fromfile="old", tofile="new", n=2)
+        diff = difflib.unified_diff(old_lines, new_lines, fromfile="old", tofile="new", n=1)
         joined = "".join(diff)
         if joined.strip():
             LOG.info("Differences:\n%s", joined)
         else:
             LOG.info("No differences.")
     else:
-        LOG.warning("Creating new file")
+        LOG.warning("File %s does not exist, creating.", target)
 
-    LOG.debug("Using temp file %s", intermediate_target)
-    with open(intermediate_target, "w") as fd:
-        fd.writelines(new_lines)
 
-    os.rename(intermediate_target, target)
-    LOG.info("File written to %s", target)
+def generate_content(fallback, g, org, team):
+    new_lines = [l + "\n" for l in get_fallback(fallback)]
+    lines = export_keys(g, org, team)
+    new_lines.extend([l + "\n" for l in lines])
+    return new_lines
 
 
 def get_fallback(fallback):
@@ -73,14 +106,15 @@ def get_fallback(fallback):
                 yield line
 
 
-def get_config():
+def get_config(path):
     try:
-        config = yaml.safe_load(open(CONFIG_PATH))
+        with open(path) as fd:
+            config = yaml.safe_load(fd)
         if config['token'] == UNCONFIGURED_TOKEN:
             return None
         return config
     except FileNotFoundError:
-        shutil.copy(EXAMPLE_CONFIG_PATH, CONFIG_PATH)
+        shutil.copy(EXAMPLE_CONFIG_PATH, path)
         return None
 
 
