@@ -1,0 +1,17 @@
+
+# Go to https://github.com/settings/tokens/new, and generate a token with the
+# privilege read:org.
+token: TOKEN
+
+# enter the organization to fetch users from
+organization: ORG
+
+# optionally, enter a team in the organization to limit access.
+#team: TEAM
+
+# target file name (relative to working directory)
+target: ~/.ssh/authorized_keys
+
+# enter one or more fallback ssh key which will always have access
+fallback_keys: |
+  ssh-rsa ...
