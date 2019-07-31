@@ -5,7 +5,7 @@ Automatically provision SSH authorized_keys to your user by scraping a GitHub or
 ## Setup
 - If you're on Debian, you will need some more packages:
 ```bash
-sudo apt install python3
+sudo apt install python3 python3-venv
 ```
 - Also, upgrade your system. An outdated libssl will cause pain.
 ```bash
