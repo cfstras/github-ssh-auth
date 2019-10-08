@@ -4,7 +4,7 @@ cffi==1.12.3
 chardet==3.0.4
 cryptography==2.7
 Deprecated==1.2.6
-ecdsa==0.13.2
+ecdsa==0.13.3
 idna==2.8
 pycparser==2.19
 PyGithub==1.43.8
