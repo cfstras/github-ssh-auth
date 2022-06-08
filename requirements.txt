@@ -8,7 +8,7 @@ ecdsa==0.13.3
 idna==2.8
 pycparser==2.19
 PyGithub==1.43.8
-PyJWT==1.7.1
+PyJWT==2.4.0
 PyYAML==5.4
 requests==2.22.0
 six==1.12.0
