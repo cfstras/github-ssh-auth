@@ -5,7 +5,7 @@ chardet==3.0.4
 cryptography==42.0.4
 Deprecated==1.2.6
 ecdsa==0.13.3
-idna==2.8
+idna==3.7
 pycparser==2.19
 PyGithub==1.43.8
 PyJWT==2.4.0
